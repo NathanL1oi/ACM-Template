@@ -48,7 +48,7 @@ struct segtree{
         return query(1,1,n,l,r);
     }
     int query(int x,int l,int r,int ql,int qr){
-        if (ql>=l&&qr<=r) return v[x];
+        if (l>=ql&&r<=qr) return v[x];
         int mid=(l+r)>>1;
         pushdown(x);
         int res1=0,res2=0;

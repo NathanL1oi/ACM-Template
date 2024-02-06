@@ -6,8 +6,8 @@ struct DSU{
     }
     void init(int n){
         fa.resize(n+5);
-        iota(f.begin(),f.end(),0);
-        sz.assign(n,1);
+        iota(fa.begin(),fa.end(),0);
+        sz.assign(n+5,1);
     }
     int find(int x){
         while(x!=fa[x]){
@@ -28,4 +28,4 @@ struct DSU{
     int size(int x){
         return sz[find(x)];
     }
-}
+};
