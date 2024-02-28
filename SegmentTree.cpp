@@ -27,8 +27,9 @@ struct segtree{
         mx[x]=max(mx[x<<1],mx[x<<1|1]);
         mi[x]=min(mi[x<<1],mi[x<<1|1]);
     }
-    void pushdown(int x){
-        v[x<<1]+=lz[x],v[x<<1|1]+=lz[x];
+    void pushdown(int x,int l,int r){
+        int mid=(l+r)>>1;
+        v[x<<1]+=lz[x]*(mid-l+1),v[x<<1|1]+=lz[x]*(r-l);
         mx[x<<1]+=lz[x],mx[x<<1|1]+=lz[x];
         mi[x<<1]+=lz[x],mi[x<<1|1]+=lz[x];
         lz[x<<1]+=lz[x],lz[x<<1|1]+=lz[x];
@@ -49,7 +50,7 @@ struct segtree{
             return ;
         }
         int mid=(l+r)>>1;
-        pushdown(x);
+        pushdown(x,l,r);
         if (ql<=mid) add(x<<1,l,mid,ql,qr,c);
         if (qr>mid) add(x<<1|1,mid+1,r,ql,qr,c);
         pushup(x);
@@ -60,7 +61,7 @@ struct segtree{
     int query(int x,int l,int r,int ql,int qr){
         if (l>=ql&&r<=qr) return v[x];
         int mid=(l+r)>>1;
-        pushdown(x);
+        pushdown(x,l,r);
         int res1=0,res2=0;
         if (ql<=mid) res1=query(x<<1,l,mid,ql,qr);
         if (qr>mid) res2=query(x<<1|1,mid+1,r,ql,qr);
@@ -70,9 +71,9 @@ struct segtree{
         return querymx(1,1,n,l,r);
     }
     int querymx(int x,int l,int r,int ql,int qr){
-        if (l>=ql&&r<=qr) return mi[x];
+        if (l>=ql&&r<=qr) return mx[x];
         int mid=(l+r)>>1;
-        pushdown(x);
+        pushdown(x,l,r);
         int res1=-INF,res2=-INF;
         if (ql<=mid) res1=querymx(x<<1,l,mid,ql,qr);
         if (qr>mid) res2=querymx(x<<1|1,mid+1,r,ql,qr);
@@ -84,7 +85,7 @@ struct segtree{
     int querymi(int x,int l,int r,int ql,int qr){
         if (l>=ql&&r<=qr) return mi[x];
         int mid=(l+r)>>1;
-        pushdown(x);
+        pushdown(x,l,r);
         int res1=INF,res2=INF;
         if (ql<=mid) res1=querymi(x<<1,l,mid,ql,qr);
         if (qr>mid) res2=querymi(x<<1|1,mid+1,r,ql,qr);
