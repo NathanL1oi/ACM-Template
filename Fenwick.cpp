@@ -3,7 +3,7 @@ struct Fenwick{
     int n;
     std::vector<T> v;
     Fenwick(int n_=0){
-        init(n_);
+        init(n_+1);
     }
     void init(int n_){
         n=n_;
