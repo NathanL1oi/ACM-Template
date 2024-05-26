@@ -29,7 +29,7 @@ struct segtree{
     }
     void pushdown(int x,int l,int r){
         int mid=(l+r)>>1;
-        v[x<<1]+=lz[x]*(mid-l+1),v[x<<1|1]+=lz[x]*(r-l);
+        v[x<<1]+=lz[x]*(mid-l+1),v[x<<1|1]+=lz[x]*(r-mid);
         mx[x<<1]+=lz[x],mx[x<<1|1]+=lz[x];
         mi[x<<1]+=lz[x],mi[x<<1|1]+=lz[x];
         lz[x<<1]+=lz[x],lz[x<<1|1]+=lz[x];

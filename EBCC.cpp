@@ -1,14 +1,12 @@
-struct SCC{
+set<pair<int,int>> E;
+struct EBCC{
     int n;
     int cur,cnt;
     vector<int> dfn,low,bel;
     vector<int> stk;
     vector<vector<int>> adj;
-    SCC(){}
-    SCC(int _n){
-        init(_n);
-    }
-    void init(int _n){
+    EBCC(){}
+    EBCC(int _n){
         n=_n;
         adj.assign(n,{});
         dfn.assign(n,-1);
@@ -19,15 +17,19 @@ struct SCC{
     }
     void addedge(int u,int v){
         adj[u].push_back(v);
+        adj[v].push_back(u);
     }
-    void dfs(int x){
+    void dfs(int x,int fa){
         dfn[x]=low[x]=cur++;
         stk.push_back(x);
         for (auto v:adj[x]){
+            if (v==fa) continue;
             if (dfn[v]==-1){
-                dfs(v);
+                E.emplace(x,v);
+                dfs(v,x);
                 low[x]=min(low[x],low[v]);
-            }else if (bel[v]==-1){
+            }else if (bel[v]==-1&&dfn[v]<dfn[x]){
+                E.emplace(x,v);
                 low[x]=min(low[x],dfn[v]);
             }
         }
@@ -42,9 +44,10 @@ struct SCC{
         }
     }
     vector<int> work(){
-        for (int i=0;i<n;i++){
-            if (dfn[i]==-1) dfs(i);
-        }
+        dfs(0,-1);
+        // for (int i=0;i<n;i++){
+        //     if (dfn[i]==-1) dfs(i,-1);
+        // }
         return bel;
     }
     struct Graph{
