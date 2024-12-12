@@ -20,4 +20,15 @@ struct Fenwick{
     T rangeSum(int l,int r){
         return query(r)-query(l-1);
     }
+    int kth (const T &k){
+        int x=0;
+        T cur{};
+        for (int i=1<<__lg(n);i;i>>=1){
+            if (x+i<=n&&cur+a[x+i]<=k){
+                x+=i;
+                cur+=a[x];
+            }
+        }
+        return x;
+    }
 };
