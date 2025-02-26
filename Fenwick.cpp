@@ -24,9 +24,9 @@ struct Fenwick{
         int x=0;
         T cur{};
         for (int i=1<<__lg(n);i;i>>=1){
-            if (x+i<=n&&cur+a[x+i]<=k){
+            if (x+i<=n&&cur+v[x+i]<=k){
                 x+=i;
-                cur+=a[x];
+                cur+=v[x];
             }
         }
         return x;
