@@ -1,217 +1,288 @@
-using i64=long long;
+using u64 = unsigned long long;
+using u32 = unsigned;
+using u128 = unsigned __int128;
+
 template<class T>
-constexpr T power(T a, i64 b) {
-    T res = 1;
-    for (; b; b /= 2, a *= a) {
-        if (b % 2) {
+constexpr T power(T a, u64 b, T res = 1) {
+    for (; b != 0; b /= 2, a *= a) {
+        if (b & 1) {
             res *= a;
         }
     }
     return res;
 }
 
-constexpr i64 mul(i64 a, i64 b, i64 p) {
-    i64 res = a * b - i64(1.L * a * b / p) * p;
-    res %= p;
-    if (res < 0) {
-        res += p;
-    }
+template<u32 P>
+constexpr u32 mulMod(u32 a, u32 b) {
+    return u64(a) * b % P;
+}
+
+template<u64 P>
+constexpr u64 mulMod(u64 a, u64 b) {
+    u64 res = a * b - u64(1.L * a * b / P - 0.5L) * P;
+    res %= P;
     return res;
 }
-template<i64 P>
-struct MLong {
-    i64 x;
-    constexpr MLong() : x{} {}
-    constexpr MLong(i64 x) : x{norm(x % getMod())} {}
+
+constexpr i64 safeMod(i64 x, i64 m) {
+    x %= m;
+    if (x < 0) {
+        x += m;
+    }
+    return x;
+}
+
+constexpr std::pair<i64, i64> invGcd(i64 a, i64 b) {
+    a = safeMod(a, b);
+    if (a == 0) {
+        return {b, 0};
+    }
     
-    static i64 Mod;
-    constexpr static i64 getMod() {
-        if (P > 0) {
-            return P;
-        } else {
-            return Mod;
-        }
+    i64 s = b, t = a;
+    i64 m0 = 0, m1 = 1;
+
+    while (t) {
+        i64 u = s / t;
+        s -= t * u;
+        m0 -= m1 * u;
+        
+        std::swap(s, t);
+        std::swap(m0, m1);
     }
-    constexpr static void setMod(i64 Mod_) {
-        Mod = Mod_;
+    
+    if (m0 < 0) {
+        m0 += b / s;
     }
-    constexpr i64 norm(i64 x) const {
-        if (x < 0) {
-            x += getMod();
+    
+    return {s, m0};
+}
+
+template<std::unsigned_integral U, U P>
+struct ModIntBase {
+public:
+    constexpr ModIntBase() : x(0) {}
+    template<std::unsigned_integral T>
+    constexpr ModIntBase(T x_) : x(x_ % mod()) {}
+    template<std::signed_integral T>
+    constexpr ModIntBase(T x_) {
+        using S = std::make_signed_t<U>;
+        S v = x_ % S(mod());
+        if (v < 0) {
+            v += mod();
         }
-        if (x >= getMod()) {
-            x -= getMod();
-        }
+        x = v;
+    }
+    
+    constexpr static U mod() {
+        return P;
+    }
+    
+    constexpr U val() const {
         return x;
     }
-    constexpr i64 val() const {
-        return x;
-    }
-    explicit constexpr operator i64() const {
-        return x;
-    }
-    constexpr MLong operator-() const {
-        MLong res;
-        res.x = norm(getMod() - x);
+    
+    constexpr ModIntBase operator-() const {
+        ModIntBase res;
+        res.x = (x == 0 ? 0 : mod() - x);
         return res;
     }
-    constexpr MLong inv() const {
-        assert(x != 0);
-        return power(*this, getMod() - 2);
+    
+    constexpr ModIntBase inv() const {
+        return power(*this, mod() - 2);
     }
-    constexpr MLong &operator*=(MLong rhs) & {
-        x = mul(x, rhs.x, getMod());
+    
+    constexpr ModIntBase &operator*=(const ModIntBase &rhs) & {
+        x = mulMod<mod()>(x, rhs.val());
         return *this;
     }
-    constexpr MLong &operator+=(MLong rhs) & {
-        x = norm(x + rhs.x);
+    constexpr ModIntBase &operator+=(const ModIntBase &rhs) & {
+        x += rhs.val();
+        if (x >= mod()) {
+            x -= mod();
+        }
         return *this;
     }
-    constexpr MLong &operator-=(MLong rhs) & {
-        x = norm(x - rhs.x);
+    constexpr ModIntBase &operator-=(const ModIntBase &rhs) & {
+        x -= rhs.val();
+        if (x >= mod()) {
+            x += mod();
+        }
         return *this;
     }
-    constexpr MLong &operator/=(MLong rhs) & {
+    constexpr ModIntBase &operator/=(const ModIntBase &rhs) & {
         return *this *= rhs.inv();
     }
-    friend constexpr MLong operator*(MLong lhs, MLong rhs) {
-        MLong res = lhs;
-        res *= rhs;
-        return res;
+    
+    friend constexpr ModIntBase operator*(ModIntBase lhs, const ModIntBase &rhs) {
+        lhs *= rhs;
+        return lhs;
     }
-    friend constexpr MLong operator+(MLong lhs, MLong rhs) {
-        MLong res = lhs;
-        res += rhs;
-        return res;
+    friend constexpr ModIntBase operator+(ModIntBase lhs, const ModIntBase &rhs) {
+        lhs += rhs;
+        return lhs;
     }
-    friend constexpr MLong operator-(MLong lhs, MLong rhs) {
-        MLong res = lhs;
-        res -= rhs;
-        return res;
+    friend constexpr ModIntBase operator-(ModIntBase lhs, const ModIntBase &rhs) {
+        lhs -= rhs;
+        return lhs;
     }
-    friend constexpr MLong operator/(MLong lhs, MLong rhs) {
-        MLong res = lhs;
-        res /= rhs;
-        return res;
+    friend constexpr ModIntBase operator/(ModIntBase lhs, const ModIntBase &rhs) {
+        lhs /= rhs;
+        return lhs;
     }
-    friend constexpr std::istream &operator>>(std::istream &is, MLong &a) {
-        i64 v;
-        is >> v;
-        a = MLong(v);
+    
+    friend constexpr std::istream &operator>>(std::istream &is, ModIntBase &a) {
+        i64 i;
+        is >> i;
+        a = i;
         return is;
     }
-    friend constexpr std::ostream &operator<<(std::ostream &os, const MLong &a) {
+    friend constexpr std::ostream &operator<<(std::ostream &os, const ModIntBase &a) {
         return os << a.val();
     }
-    friend constexpr bool operator==(MLong lhs, MLong rhs) {
+    
+    friend constexpr bool operator==(const ModIntBase &lhs, const ModIntBase &rhs) {
         return lhs.val() == rhs.val();
     }
-    friend constexpr bool operator!=(MLong lhs, MLong rhs) {
-        return lhs.val() != rhs.val();
+    friend constexpr std::strong_ordering operator<=>(const ModIntBase &lhs, const ModIntBase &rhs) {
+        return lhs.val() <=> rhs.val();
     }
+    
+private:
+    U x;
 };
 
-template<>
-i64 MLong<0LL>::Mod = i64(1E18) + 9;
+template<u32 P>
+using ModInt = ModIntBase<u32, P>;
+template<u64 P>
+using ModInt64 = ModIntBase<u64, P>;
 
-template<int P>
-struct MInt {
-    int x;
-    constexpr MInt() : x{} {}
-    constexpr MInt(i64 x) : x{norm(x % getMod())} {}
+struct Barrett {
+public:
+    Barrett(u32 m_) : m(m_), im((u64)(-1) / m_ + 1) {}
+
+    constexpr u32 mod() const {
+        return m;
+    }
+
+    constexpr u32 mul(u32 a, u32 b) const {
+        u64 z = a;
+        z *= b;
+        
+        u64 x = u64((u128(z) * im) >> 64);
+        
+        u32 v = u32(z - x * m);
+        if (m <= v) {
+            v += m;
+        }
+        return v;
+    }
+
+private:
+    u32 m;
+    u64 im;
+};
+
+template<u32 Id>
+struct DynModInt {
+public:
+    constexpr DynModInt() : x(0) {}
+    template<std::unsigned_integral T>
+    constexpr DynModInt(T x_) : x(x_ % mod()) {}
+    template<std::signed_integral T>
+    constexpr DynModInt(T x_) {
+        int v = x_ % int(mod());
+        if (v < 0) {
+            v += mod();
+        }
+        x = v;
+    }
     
-    static int Mod;
-    constexpr static int getMod() {
-        if (P > 0) {
-            return P;
-        } else {
-            return Mod;
-        }
+    constexpr static void setMod(u32 m) {
+        bt = m;
     }
-    constexpr static void setMod(int Mod_) {
-        Mod = Mod_;
+    
+    static u32 mod() {
+        return bt.mod();
     }
-    constexpr int norm(int x) const {
-        if (x < 0) {
-            x += getMod();
-        }
-        if (x >= getMod()) {
-            x -= getMod();
-        }
+    
+    constexpr u32 val() const {
         return x;
     }
-    constexpr int val() const {
-        return x;
-    }
-    explicit constexpr operator int() const {
-        return x;
-    }
-    constexpr MInt operator-() const {
-        MInt res;
-        res.x = norm(getMod() - x);
+    
+    constexpr DynModInt operator-() const {
+        DynModInt res;
+        res.x = (x == 0 ? 0 : mod() - x);
         return res;
     }
-    constexpr MInt inv() const {
-        assert(x != 0);
-        return power(*this, getMod() - 2);
+    
+    constexpr DynModInt inv() const {
+        auto v = invGcd(x, mod());
+        assert(v.first == 1);
+        return v.second;
     }
-    constexpr MInt &operator*=(MInt rhs) & {
-        x = 1LL * x * rhs.x % getMod();
+    
+    constexpr DynModInt &operator*=(const DynModInt &rhs) & {
+        x = bt.mul(x, rhs.val());
         return *this;
     }
-    constexpr MInt &operator+=(MInt rhs) & {
-        x = norm(x + rhs.x);
+    constexpr DynModInt &operator+=(const DynModInt &rhs) & {
+        x += rhs.val();
+        if (x >= mod()) {
+            x -= mod();
+        }
         return *this;
     }
-    constexpr MInt &operator-=(MInt rhs) & {
-        x = norm(x - rhs.x);
+    constexpr DynModInt &operator-=(const DynModInt &rhs) & {
+        x -= rhs.val();
+        if (x >= mod()) {
+            x += mod();
+        }
         return *this;
     }
-    constexpr MInt &operator/=(MInt rhs) & {
+    constexpr DynModInt &operator/=(const DynModInt &rhs) & {
         return *this *= rhs.inv();
     }
-    friend constexpr MInt operator*(MInt lhs, MInt rhs) {
-        MInt res = lhs;
-        res *= rhs;
-        return res;
+    
+    friend constexpr DynModInt operator*(DynModInt lhs, const DynModInt &rhs) {
+        lhs *= rhs;
+        return lhs;
     }
-    friend constexpr MInt operator+(MInt lhs, MInt rhs) {
-        MInt res = lhs;
-        res += rhs;
-        return res;
+    friend constexpr DynModInt operator+(DynModInt lhs, const DynModInt &rhs) {
+        lhs += rhs;
+        return lhs;
     }
-    friend constexpr MInt operator-(MInt lhs, MInt rhs) {
-        MInt res = lhs;
-        res -= rhs;
-        return res;
+    friend constexpr DynModInt operator-(DynModInt lhs, const DynModInt &rhs) {
+        lhs -= rhs;
+        return lhs;
     }
-    friend constexpr MInt operator/(MInt lhs, MInt rhs) {
-        MInt res = lhs;
-        res /= rhs;
-        return res;
+    friend constexpr DynModInt operator/(DynModInt lhs, const DynModInt &rhs) {
+        lhs /= rhs;
+        return lhs;
     }
-    friend constexpr std::istream &operator>>(std::istream &is, MInt &a) {
-        i64 v;
-        is >> v;
-        a = MInt(v);
+    
+    friend constexpr std::istream &operator>>(std::istream &is, DynModInt &a) {
+        i64 i;
+        is >> i;
+        a = i;
         return is;
     }
-    friend constexpr std::ostream &operator<<(std::ostream &os, const MInt &a) {
+    friend constexpr std::ostream &operator<<(std::ostream &os, const DynModInt &a) {
         return os << a.val();
     }
-    friend constexpr bool operator==(MInt lhs, MInt rhs) {
+    
+    friend constexpr bool operator==(const DynModInt &lhs, const DynModInt &rhs) {
         return lhs.val() == rhs.val();
     }
-    friend constexpr bool operator!=(MInt lhs, MInt rhs) {
-        return lhs.val() != rhs.val();
+    friend constexpr std::strong_ordering operator<=>(const DynModInt &lhs, const DynModInt &rhs) {
+        return lhs.val() <=> rhs.val();
     }
+    
+private:
+    u32 x;
+    static Barrett bt;
 };
 
-template<>
-int MInt<0>::Mod = 998244353;
+template<u32 Id>
+Barrett DynModInt<Id>::bt = 998244353;
 
-template<int V, int P>
-constexpr MInt<P> CInv = MInt<P>(V).inv();
-
-constexpr int P = 1000000007;
-using Z = MInt<P>;
+using Z = ModInt<998244353>;
