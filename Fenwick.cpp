@@ -7,7 +7,7 @@ struct Fenwick{
     }
     void init(int n_){
         n=n_;
-        v.assign(n,T{});
+        v.assign(n+1,T{});
     }
     void add(int x,const T &c){
         for (;x<=n;x+=x&(-x)) v[x]+=c;

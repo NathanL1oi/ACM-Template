@@ -5,9 +5,9 @@ struct DSU{
         init(n);
     }
     void init(int n){
-        fa.resize(n+5);
+        fa.resize(n+1);
         iota(fa.begin(),fa.end(),0);
-        sz.assign(n+5,1);
+        sz.assign(n+1,1);
     }
     int find(int x){
         while(x!=fa[x]){
