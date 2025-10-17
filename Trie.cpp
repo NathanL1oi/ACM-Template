@@ -15,22 +15,32 @@ struct Trie{
     }
     void add(int x,int c=1){
         int p=1;
-        f[p]+=c;
-        s[c]+=c;
+        s[p]+=c;
         for (int i=lg-1;i>=0;i--){
             int d=x>>i&1;
             if (!trie[p][d]) trie[p][d]=newnode();
             p=trie[p][d];
-            f[p]+=c,s[c]+=c;
+            s[p]+=c;
         }
+        f[p]+=c;
+    };
+    void del(int x,int c=1){
+        int p=1;
+        s[p]-=c;
+        for (int i=lg-1;i>=0;i--){
+            int d=x>>i&1;
+            p=trie[p][d];
+            s[p]-=c;
+        }
+        f[p]-=c;
     };
     int query(int x){
         int res=0;
         int p=1;
         for (int i=lg-1;i>=0;i--){
             int d=x>>i&1;
-            if (!trie[p][d]) d=d^1;
-            if (!trie[p][d]) return 0;
+            if (!s[trie[p][d]]) d=d^1;
+            // if (!s[trie[p][d]]) return 0;
             p=trie[p][d];
             res+=d<<i;
         }
