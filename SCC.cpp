@@ -63,7 +63,7 @@ struct SCC{
         for (int i=0;i<n;i++){
             g.siz[bel[i]]++;
             for (auto j:adj[i]){
-                if (bel[i]<bel[j]){
+                if (bel[i]!=bel[j]){
                     g.edges.emplace_back(bel[i],bel[j]);
                 }else if (i<j){
                     g.cnte[bel[i]]++;
